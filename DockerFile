@@ -1,11 +1,28 @@
-services:
-  - type: web
-    name: chatroom
-    env: java
-    buildCommand: "./mvnw clean package -DskipTests"
-    startCommand: "java -jar target/chat-application-0.0.1-SNAPSHOT.jar"
-    envVars:
-      - key: JAVA_HOME
-        value: /opt/java/openjdk
-      - key: SPRING_PROFILES_ACTIVE
-        value: prod
+# Use OpenJDK 17 as base image
+FROM openjdk:17-jdk-slim
+
+# Set working directory inside container
+WORKDIR /app
+
+# Copy Maven wrapper and pom.xml first (for better caching)
+COPY mvnw .
+COPY .mvn .mvn
+COPY pom.xml .
+
+# Make Maven wrapper executable
+RUN chmod +x ./mvnw
+
+# Download dependencies (this layer will be cached if pom.xml doesn't change)
+RUN ./mvnw dependency:go-offline -B
+
+# Copy source code
+COPY src ./src
+
+# Build the application
+RUN ./mvnw clean package -DskipTests
+
+# Expose the port for Render
+EXPOSE 10000
+
+# Run the JAR file with correct port configuration
+CMD ["java", "-jar", "-Dserver.port=10000", "target/chat-application-0.0.1-SNAPSHOT.jar"]
