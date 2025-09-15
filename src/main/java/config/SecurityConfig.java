@@ -1,6 +1,3 @@
-/* ============================================ */
-/* FIXED SecurityConfig.java - REPLACE YOUR ENTIRE FILE WITH THIS */
-/* ============================================ */
 
 package com.example.chat.config;
 
